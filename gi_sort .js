@@ -57,11 +57,15 @@ var tableData = [],
       sortIndex = 0,
       sortDirection = 1;
 // DDOES:
-window.addEventListener('load', defineDataArray && writeTableData); // && writeTableData
+window.addEventListener('load', function () {
+      defineDataArray();
+      writeTableData();
+      defineColumns();
+});
 // DFUNC:
 function defineDataArray() {
       // DVARA:
-      var tableRows = document.querySelectorAll('table#sortable tbody tr');
+      var tableRows = document.querySelectorAll('table.sortable tbody tr');
       // DLOOP:
       for (var i = 0; i < tableRows.length; i++) {
             // DVARL:
@@ -75,31 +79,119 @@ function defineDataArray() {
             tableData.push(rowValues);
       }
       // DFUNC:
-      tableData.sort(dataSort2D);
+      tableData.sort(function (a, b) {
+            if (isNaN(parseFloat(a[sortIndex])) === false) {
+                  return (a[sortIndex] - b[sortIndex]) * sortDirection;
+            } else {
+                  var astring = a[sortIndex];
+                  var bstring = b[sortIndex];
+
+                  if (bstring > astring) return -sortDirection;
+                  if (bstring < astring) return sortDirection;
+                  return 0;
+            }
+      });
 };
 // DFUNC:
 function writeTableData() {
       // DVARO:
       var newTableBody = document.createElement('tbody'),
-            trN = document.createElement('tr'),
-            tdN = document.createElement('td'),
             tbody = document.getElementById('sortable').childNodes[7];
-      console.log(tbody)
-      // DLOOP:
       for (var tr = 0; tr < tableData.length; tr++) {
+            // DVARO:
+            var trN = document.createElement('tr');
             // DLOOP:
-            console.log(tableData)
             for (var td = 0; td < tableData[tr].length; td++) {
-                  tdN.nodeValue = `${tableData[tr][td]}`;
+                  // DVARL:
+                  var tdN = document.createElement('td'),
+                        tdText = tableData[tr][td];
+                  // DDOES:
+                  tdN.appendChild(tdText)
                   trN.appendChild(tdN)
             }
             // DDOES:
             newTableBody.appendChild(trN)
       }
+      // DDOES:
       document.getElementById('sortable').replaceChild(newTableBody, tbody);
 };
+// DFUNC:
+function defineColumns() {
+      // DVARO:
+      var styleSheets = document.createElement('style'),
+            thInThePage = document.querySelectorAll('table.sortable thead tr th');
+      // DDOES:
+      document.head.appendChild(styleSheets);
+      // DDOES:
+      document.styleSheets[document.styleSheets.length - 1].insertRule(
+            "table.sortable thead tr th { \
+                  cursor: pointer; \
+            }", 0
+      );
+      document.styleSheets[document.styleSheets.length - 1].insertRule(
+            "table.sortable thead tr th::after { \
+                  content: '\\00a0'; \
+                  font-family: monospace; \
+                  margin-left: 5px; \
+            }", 1
+      );
+      document.styleSheets[document.styleSheets.length - 1].insertRule(
+            "table.sortable thead tr th:nth-of-type(1)::after { \
+                  content: '\\25b2'; \
+            }", 2
+      );
+      // DLOOP:
+      for (var i = 0; i < thInThePage.length; i++) {
+            // DVARS:
+            var thText = thInThePage[i].innerHTML
+            // DVARA:
+            dataCategories.push(thText);
+            // DDOES:
+            thInThePage[i].addEventListener('click', columnSort);
+      }
+};
+// DFUNC:
+function columnSort(e) {
+      // DVARL:
+      var columnText = e.target.innerHTML,
+            columnIndex = dataCategories.indexOf(columnText),
+            columnNumber = columnIndex + 1,
+            columnStyles = document.styleSheets[document.styleSheets.length - 1].cssRules[document.styleSheets[document.styleSheets.length - 1].cssRules - 1];
+      // DIFDO:
+      if (columnIndex == sortIndex) {
+            sortDirection *= -1;
+      }
+      // DDOES:
+      document.styleSheets[document.styleSheets.length - 1].deleteRule(2);
+      if (sortDirection === 1) {
+            document.styleSheets[document.styleSheets.length - 1].insertRule(
+                  `table.sortable thead tr th:nth-of-type(${columnNumber})::after { \
+                        content: '\\25b2'; \
+                  }`, 2
+            )
+      } else {
+            document.styleSheets[document.styleSheets.length - 1].insertRule(
+                  `table.sortable thead tr th:nth-of-type(${columnNumber})::after { \
+                        content: '\\25bc'; \
+                  }`, 2
+            )
+      };
+      // DDOES: 
+      tableData.sort(function (a, b) {
+            if (isNaN(parseFloat(a[sortIndex])) === false) {
+                  return (a[sortIndex] - b[sortIndex]) * sortDirection;
+            } else {
+                  var astring = a[sortIndex];
+                  var bstring = b[sortIndex];
 
-
+                  if (bstring > astring) return -sortDirection;
+                  if (bstring < astring) return sortDirection;
+                  return 0;
+            }
+      });
+      // DFUNC:
+      writeTableData();
+};
 
 
 
