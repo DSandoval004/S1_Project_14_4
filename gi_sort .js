@@ -51,78 +51,73 @@
     
 
 */
-// DVARG:
+// DVARG: Global variable to be used throughout th project
 var tableData = [],
       dataCategories = [],
       sortIndex = 0,
       sortDirection = 1;
-// DDOES:
+// DDOES: Event listener to run anonumous function when the page is loaded
 window.addEventListener('load', function () {
+      // DFUNC: Function to be run
       defineDataArray();
       writeTableData();
       defineColumns();
 });
-// DFUNC:
+// DFUNC: Stores the table and sorts it
 function defineDataArray() {
-      // DVARA:
+      // DVARA: Gets all the table rows in the sortable table
       var tableRows = document.querySelectorAll('table.sortable tbody tr');
-      // DLOOP:
+      // DLOOP: Loops through the tableRow array
       for (var i = 0; i < tableRows.length; i++) {
-            // DVARL:
-            var rowCells = tableRows[i].cells,
+            // DVARL: Local variable for the for loop
+            var rowCells = tableRows[i].children,
                   rowValues = [];
-            // DLOOP:
+            // DLOOP: Loops through the rowCells array
             for (var k = 0; k < rowCells.length; k++) {
-                  var cellText = rowCells[k].childNodes[0];
+                  // DVARS: Gets the cell text of the rowCells array
+                  var cellText = rowCells[k].textContent;
+                  // DVARA: Adds the cellText to the rowValues array
                   rowValues.push(cellText);
             }
+            // DVARA: Adds the rowValues array to the tableData array
             tableData.push(rowValues);
       }
-      // DFUNC:
-      tableData.sort(function (a, b) {
-            if (isNaN(parseFloat(a[sortIndex])) === false) {
-                  return (a[sortIndex] - b[sortIndex]) * sortDirection;
-            } else {
-                  var astring = a[sortIndex];
-                  var bstring = b[sortIndex];
-
-                  if (bstring > astring) return -sortDirection;
-                  if (bstring < astring) return sortDirection;
-                  return 0;
-            }
-      });
+      // DVARA: Sorts the tableData array
+      tableData.sort(dataSort2D);
 };
-// DFUNC:
+// DFUNC: Function to write out the table
 function writeTableData() {
-      // DVARO:
+      // DVARL: local variables to be used in the function
       var newTableBody = document.createElement('tbody'),
             tbody = document.getElementById('sortable').childNodes[7];
+      // DLOOP: loops through the tableData array
       for (var tr = 0; tr < tableData.length; tr++) {
-            // DVARO:
+            // DVARO: Creates the tr element
             var trN = document.createElement('tr');
-            // DLOOP:
+            // DLOOP: Loops through the tableData array's array
             for (var td = 0; td < tableData[tr].length; td++) {
-                  // DVARL:
+                  // DVARL: Local variable for this loop
                   var tdN = document.createElement('td'),
                         tdText = tableData[tr][td];
-                  // DDOES:
-                  tdN.appendChild(tdText)
+                  // DDOES: Applies the tdText to the tdN element
+                  tdN.innerHTML = tdText;
+                  // DVARO: Adds the tdN elment as a child to the trN element
                   trN.appendChild(tdN)
             }
-            // DDOES:
+            // DDOES: Adds the trN elment as a child to the newTableBody element
             newTableBody.appendChild(trN)
       }
-      // DDOES:
+      // DDOES: gets the sortable table and replaces it's tbody with the newTableBody
       document.getElementById('sortable').replaceChild(newTableBody, tbody);
 };
-// DFUNC:
+// DFUNC: creates the style for the columns
 function defineColumns() {
-      // DVARO:
+      // DVARL: local vriables for the function
       var styleSheets = document.createElement('style'),
             thInThePage = document.querySelectorAll('table.sortable thead tr th');
-      // DDOES:
+      // DDOES: Applies the stylesheet to the head of the documnent
       document.head.appendChild(styleSheets);
-      // DDOES:
+      // DDOES: Creates style for the new stylesheet and applies them
       document.styleSheets[document.styleSheets.length - 1].insertRule(
             "table.sortable thead tr th { \
                   cursor: pointer; \
@@ -140,30 +135,32 @@ function defineColumns() {
                   content: '\\25b2'; \
             }", 2
       );
-      // DLOOP:
+      // DLOOP: Loops through the th in the page
       for (var i = 0; i < thInThePage.length; i++) {
-            // DVARS:
+            // DVARS: gets the HTML from the nodes
             var thText = thInThePage[i].innerHTML
-            // DVARA:
+            // DVARA: adds the thText to the dataCategories array
             dataCategories.push(thText);
-            // DDOES:
+            // DDOES: When the th are clicked on the browser runs the function columnSort
             thInThePage[i].addEventListener('click', columnSort);
       }
 };
-// DFUNC:
+// DFUNC: sorts the table based on the column selected
 function columnSort(e) {
-      // DVARL:
+      // DVARL: Local variables for the columnSort function
       var columnText = e.target.innerHTML,
             columnIndex = dataCategories.indexOf(columnText),
-            columnNumber = columnIndex + 1,
-            columnStyles = document.styleSheets[document.styleSheets.length - 1].cssRules[document.styleSheets[document.styleSheets.length - 1].cssRules - 1];
-      // DIFDO:
+            columnNumber = columnIndex + 1;
+      // DIFDO: if the columnIndex matches sortIndex it then multiples sortDirection by -1, if not it sets the sortIndex equal to columnIndex
       if (columnIndex == sortIndex) {
             sortDirection *= -1;
+      } else {
+            sortIndex = columnIndex;
       }
-      // DDOES:
+      // DDOES: Deletes the last styleRule in the stylesheet
       document.styleSheets[document.styleSheets.length - 1].deleteRule(2);
-      if (sortDirection === 1) {
+      // DIFDO: if sorDirction equals 1 it inserts a stylerule, else it inserts a different styleRule
+      if (sortDirection == 1) {
             document.styleSheets[document.styleSheets.length - 1].insertRule(
                   `table.sortable thead tr th:nth-of-type(${columnNumber})::after { \
                         content: '\\25b2'; \
@@ -176,26 +173,12 @@ function columnSort(e) {
                   }`, 2
             )
       };
-      // DDOES: 
-      tableData.sort(function (a, b) {
-            if (isNaN(parseFloat(a[sortIndex])) === false) {
-                  return (a[sortIndex] - b[sortIndex]) * sortDirection;
-            } else {
-                  var astring = a[sortIndex];
-                  var bstring = b[sortIndex];
-
-                  if (bstring > astring) return -sortDirection;
-                  if (bstring < astring) return sortDirection;
-                  return 0;
-            }
-      });
-      // DFUNC:
+      // DDOES: Sorts the tableData array with the dataSort2D as the callback function
+      tableData.sort(dataSort2D);
+      // DFUNC: runs the writeTableData function
       writeTableData();
 };
-
-
-
-
+// DFUNC: code given to us by the book
 function dataSort2D(a, b) {
       if (isNaN(parseFloat(a[sortIndex])) === false) {
             return (a[sortIndex] - b[sortIndex]) * sortDirection;
